@@ -22,11 +22,12 @@ class Mastermind():
     guesses = []
     
     # Constructor
-    def __init__(self, kleuren=['R', 'O', 'Y', 'G', 'C', 'B'], lengte=4, duplicates=True, max_guesses=10):
+    def __init__(self, kleuren=['R', 'O', 'Y', 'G', 'C', 'B'], lengte=4, duplicates=True, max_guesses=10, method="human"):
         self.kleuren = kleuren
         self.lengte = lengte
         self.duplicates = duplicates
         self.max_guesses = max_guesses
+        self.method = method
         
         # Reset de code, guesses, etc.
         self.reset()
@@ -96,58 +97,21 @@ class Mastermind():
         # Code is valide
         return True
     
-    # Geef feedback aan de speler over de code
-    def geef_feedback(self, guess):
-        
-        # Zet de guess om naar een lijst
-        guess = list(guess)
-        
-        # Maak een tijdelijke kopie van de juiste code,
-        # deze kunnen we dan aanpassen om dubbele feedback te voorkomen
-        kopie_code = list(self.code)
-        
-        # Juiste kleur op de juiste positie
-        helemaal_goed = 0
-        
-        # Juiste kleur op de verkeerde positie
-        juiste_kleur = 0
-        
-        # Loop over de code om de juiste kleur verkeerde positie te bepalen
-        for i in range(self.lengte):
-            
-            # Exacte match?
-            if (kopie_code[i] == guess[i]):
-                # Een match qua kleur en positie
-                helemaal_goed += 1
-                
-                # Vervang het stukje code, zodat we deze niet
-                # als juiste kleur verkeerde positie kunnen markeren
-                kopie_code[i] = 'X'
-        
-        # Nu we alle juiste eruit gefilterd hebben kunnen we kijken
-        # naar wat nog op de verkeerde plek staat.
-        for i in range(self.lengte):
-            
-            # Zit de kleur ergens anders in de code
-            if guess[i] in kopie_code:
-                # Verhoog de counter
-                juiste_kleur += 1
-                
-                # Vervang het element, zodat we geen dubbele feedback krijgen
-                kopie_code[kopie_code.index(guess[i])] = 'X'
-        
-        return (helemaal_goed, juiste_kleur)
-    
     # Pas de overgebleven opties voor de code aan
-    def update_mogelijkheden(self):
-        
-        # Loop over alle overgebleven codes
-        # for code in self.potential:
-        
-        # Bevat het de kleuren die erin moeten zitten?
-        
-        # Heeft hij geen kleuren op posities waar we weten dat ze niet kunnen staan
-        return
+    def update_mogelijkheden(self, feedback, guess):
+        if self.method == "AI":
+            # Loop over alle overgebleven codes
+            newcodes = []
+
+            for code in self.potential:
+                if geef_feedback(code, guess) == feedback:
+                    newcodes.append(code)
+
+            self.potential = newcodes
+            return
+
+        if self.method == "expected":
+            self.potential = self.expectedfeedback[feedback]
     
     # Speel het spel
     def play(self):
@@ -164,8 +128,20 @@ class Mastermind():
             
             # Laat de speler raden
             print("Aantal overgebleven pogingen: " + str(self.max_guesses - no_guesses))
-            guess = input("Raad de code: ")
-            
+
+            if self.method == "human":
+                guess = input("Raad de code: ")
+
+            if self.method == "AI":
+                print(len(self.potential))
+                randelement = random.randint(0, len(self.potential))
+                guess = "".join(self.potential[randelement - 1])
+                print(guess)
+
+            if self.method == "expected":
+                guess = ''.join(self.expectedguess())
+                print(guess)
+
             # Laat de speler opnieuw input invoeren zo lang we geen geldige gok hebben
             while (not self.valide(guess)):
                 print("De code die je hebt ingevoerd is niet geldig, probeer het opnieuw")
@@ -175,10 +151,10 @@ class Mastermind():
             if (''.join(self.code) == guess):
                 gewonnen = True
             else:
-                feedback = self.geef_feedback(guess)
+                feedback = geef_feedback(self.code, guess)
                 print("Kleuren op de juiste positie: " + str(feedback[0]))
                 print("Kleuren op de verkeerde positie: " + str(feedback[1]))
-                # self.update_mogelijkheden()
+                self.update_mogelijkheden(feedback, guess)
                 self.guesses.append(guess)
             
             # Een poging gedaan
@@ -192,8 +168,76 @@ class Mastermind():
         
         # Zet een spelletje mastermind klaar
 
+    def expectedguess(self):
+        averages = {}
+        freqs = {}
+        for guess in self.potential:
+            freq = {}
+            for code in self.potential:
+                feedback = geef_feedback(code, guess)
 
-game = Mastermind()
+                if feedback in freq.keys():
+                    freq[feedback].append(code)
+                else:
+                    freq[feedback] = [code]
+
+            averages[guess] = sum([len(y) / len(list(self.potential)) * len(y) for y in freq.values()])
+            freqs[guess] = freq
+
+        print(averages)
+        self.expectedfeedback = freqs[min(averages)]
+        return min(averages)
+
+
+
+# 2 codes met elkaar vergelijken
+def geef_feedback(secret, guess):
+    # Zet de gok om naar een lijst
+    guess = list(guess)
+
+    # De code om de gok mee te vergelijken
+    kopie_code = list(secret)
+
+    # Juiste kleur op de juiste positie
+    helemaal_goed = 0
+
+    # Juiste kleur op de verkeerde positie
+    juiste_kleur = 0
+
+    # Loop over de code om de juiste kleur verkeerde positie te bepalen
+    for i in range(len(secret)):
+
+        # Exacte match?
+        if (kopie_code[i] == guess[i]):
+            # Een match qua kleur en positie
+            helemaal_goed += 1
+
+            # Vervang het stukje code, zodat we deze niet
+            # als juiste kleur verkeerde positie kunnen markeren
+            kopie_code[i] = '-'
+            guess[i] = ''
+
+    # Nu we alle juiste eruit gefilterd hebben kunnen we kijken
+    # naar wat nog op de verkeerde plek staat.
+    for i in range(len(secret)):
+
+        # Zit de kleur ergens anders in de code
+        if guess[i] in kopie_code:
+            # Verhoog de counter
+            juiste_kleur += 1
+
+            # Vervang het element, zodat we geen dubbele feedback krijgen
+            kopie_code[kopie_code.index(guess[i])] = '-'
+            guess[i] = ''
+
+    return (helemaal_goed, juiste_kleur)
+
+
+
+
+len(Mastermind(method="expected").guesses)
+
+
 
 # Start een nieuwe ronde
 # game.reset()
