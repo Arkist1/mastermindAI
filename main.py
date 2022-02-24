@@ -114,7 +114,7 @@ class Mastermind():
             return
         
         # self.potential gelijkstellen aan de waarde die we eerder hadden gegenereerd
-        elif self.method == "expected":
+        elif self.method == "expected" or self.method == "unexpected":
             self.potential = self.expectedfeedback[feedback]
     
     # Speel het spel
@@ -144,9 +144,14 @@ class Mastermind():
                 guess = "".join(self.potential[randelement])
                 print(guess)
             
-            # expect algoritme
+            # expected algoritme
             elif self.method == "expected":
                 guess = ''.join(self.expectedguess())
+                print(guess)
+                
+            # unexpected algoritme
+            elif self.method == "unexpected":
+                guess = ''.join(self.expectedguess(method="unexpected"))
                 print(guess)
                 
             # bogo algoritme
@@ -180,7 +185,7 @@ class Mastermind():
         
         # Zet een spelletje mastermind klaar
     
-    def expectedguess(self):
+    def expectedguess(self, method="expect"):
         # dicts aanmaken voor de data
         averages = {}
         freqs = {}
@@ -208,10 +213,10 @@ class Mastermind():
             freqs[guess] = freq
         
         # de feedback opslaan voor later gebruik
-        self.expectedfeedback = freqs[min(averages)]
+        self.expectedfeedback = freqs[min(averages)] if method == "expect" else freqs[max(averages)]
         
         # het element meet de laasgste waarde heb je nodig
-        return min(averages)
+        return min(averages) if method == "expected" else max(averages)
 
 
 # 2 codes met elkaar vergelijken
@@ -257,7 +262,7 @@ def geef_feedback(secret, guess):
     return (helemaal_goed, juiste_kleur)
 
 
-len(Mastermind(method="expected").guesses)
+Mastermind(method="unexpected")
 
 # Start een nieuwe ronde
 # game.reset()
