@@ -142,6 +142,10 @@ class Mastermind():
             if self.method == "expected":
                 guess = ''.join(self.expectedguess())
                 print(guess)
+                
+            if self.method == "blob":
+                randelement = random.randint(0, len(self.potential))
+                guess = "".join(self.potential[randelement - 1])
             
             # Laat de speler opnieuw input invoeren zo lang we geen geldige gok hebben
             while (not self.valide(guess)):
