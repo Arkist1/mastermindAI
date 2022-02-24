@@ -22,7 +22,8 @@ class Mastermind():
     guesses = []
     
     # Constructor
-    def __init__(self, kleuren=['R', 'O', 'Y', 'G', 'C', 'B'], lengte=4, duplicates=True, max_guesses=10, method="human"):
+    def __init__(self, kleuren=['R', 'O', 'Y', 'G', 'C', 'B'], lengte=4, duplicates=True, max_guesses=10,
+                 method="human"):
         self.kleuren = kleuren
         self.lengte = lengte
         self.duplicates = duplicates
@@ -102,14 +103,14 @@ class Mastermind():
         if self.method == "AI":
             # Loop over alle overgebleven codes
             newcodes = []
-
+            
             for code in self.potential:
                 if geef_feedback(code, guess) == feedback:
                     newcodes.append(code)
-
+            
             self.potential = newcodes
             return
-
+        
         if self.method == "expected":
             self.potential = self.expectedfeedback[feedback]
     
@@ -128,20 +129,20 @@ class Mastermind():
             
             # Laat de speler raden
             print("Aantal overgebleven pogingen: " + str(self.max_guesses - no_guesses))
-
+            
             if self.method == "human":
                 guess = input("Raad de code: ")
-
+            
             if self.method == "AI":
                 print(len(self.potential))
                 randelement = random.randint(0, len(self.potential))
                 guess = "".join(self.potential[randelement - 1])
                 print(guess)
-
+            
             if self.method == "expected":
                 guess = ''.join(self.expectedguess())
                 print(guess)
-
+            
             # Laat de speler opnieuw input invoeren zo lang we geen geldige gok hebben
             while (not self.valide(guess)):
                 print("De code die je hebt ingevoerd is niet geldig, probeer het opnieuw")
@@ -167,7 +168,7 @@ class Mastermind():
             print("De code was: " + str(self.code))
         
         # Zet een spelletje mastermind klaar
-
+    
     def expectedguess(self):
         averages = {}
         freqs = {}
@@ -175,69 +176,64 @@ class Mastermind():
             freq = {}
             for code in self.potential:
                 feedback = geef_feedback(code, guess)
-
+                
                 if feedback in freq.keys():
                     freq[feedback].append(code)
                 else:
                     freq[feedback] = [code]
-
+            
             averages[guess] = sum([len(y) / len(list(self.potential)) * len(y) for y in freq.values()])
             freqs[guess] = freq
-
+        
         print(averages)
         self.expectedfeedback = freqs[min(averages)]
         return min(averages)
-
 
 
 # 2 codes met elkaar vergelijken
 def geef_feedback(secret, guess):
     # Zet de gok om naar een lijst
     guess = list(guess)
-
+    
     # De code om de gok mee te vergelijken
     kopie_code = list(secret)
-
+    
     # Juiste kleur op de juiste positie
     helemaal_goed = 0
-
+    
     # Juiste kleur op de verkeerde positie
     juiste_kleur = 0
-
+    
     # Loop over de code om de juiste kleur verkeerde positie te bepalen
     for i in range(len(secret)):
-
+        
         # Exacte match?
         if (kopie_code[i] == guess[i]):
             # Een match qua kleur en positie
             helemaal_goed += 1
-
+            
             # Vervang het stukje code, zodat we deze niet
             # als juiste kleur verkeerde positie kunnen markeren
             kopie_code[i] = '-'
             guess[i] = ''
-
+    
     # Nu we alle juiste eruit gefilterd hebben kunnen we kijken
     # naar wat nog op de verkeerde plek staat.
     for i in range(len(secret)):
-
+        
         # Zit de kleur ergens anders in de code
         if guess[i] in kopie_code:
             # Verhoog de counter
             juiste_kleur += 1
-
+            
             # Vervang het element, zodat we geen dubbele feedback krijgen
             kopie_code[kopie_code.index(guess[i])] = '-'
             guess[i] = ''
-
+    
     return (helemaal_goed, juiste_kleur)
 
 
-
-
 len(Mastermind(method="expected").guesses)
-
-
 
 # Start een nieuwe ronde
 # game.reset()
