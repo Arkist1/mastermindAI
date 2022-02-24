@@ -29,6 +29,7 @@ class Mastermind():
         self.duplicates = duplicates
         self.max_guesses = max_guesses
         self.method = method
+        self.expectedfeedback = {}
         
         # Reset de code, guesses, etc.
         self.reset()
@@ -108,10 +109,12 @@ class Mastermind():
                 if geef_feedback(code, guess) == feedback:
                     newcodes.append(code)
             
+            # nieuwe codes
             self.potential = newcodes
             return
         
-        if self.method == "expected":
+        # self.potential gelijkstellen aan de waarde die we eerder hadden gegenereerd
+        elif self.method == "expected":
             self.potential = self.expectedfeedback[feedback]
     
     # Speel het spel
@@ -130,22 +133,26 @@ class Mastermind():
             # Laat de speler raden
             print("Aantal overgebleven pogingen: " + str(self.max_guesses - no_guesses))
             
+            # method voor menselijk gebruik
             if self.method == "human":
                 guess = input("Raad de code: ")
             
+            # het simpel algoritme
             elif self.method == "AI":
                 print(len(self.potential))
-                randelement = random.randint(0, len(self.potential))
-                guess = "".join(self.potential[randelement - 1])
+                randelement = random.randint(0, len(self.potential) - 1)
+                guess = "".join(self.potential[randelement])
                 print(guess)
             
+            # expect algoritme
             elif self.method == "expected":
                 guess = ''.join(self.expectedguess())
                 print(guess)
                 
-            elif self.method == "blob":
-                randelement = random.randint(0, len(self.potential))
-                guess = "".join(self.potential[randelement - 1])
+            # bogo algoritme
+            elif self.method == "bogo":
+                randelement = random.randint(0, len(self.potential) - 1)
+                guess = "".join(self.potential[randelement])
             
             # Laat de speler opnieuw input invoeren zo lang we geen geldige gok hebben
             while (not self.valide(guess)):
@@ -174,23 +181,36 @@ class Mastermind():
         # Zet een spelletje mastermind klaar
     
     def expectedguess(self):
+        # dicts aanmaken voor de data
         averages = {}
         freqs = {}
+        
+        # alle mogelijke guesses die je nog kan geven
         for guess in self.potential:
+            # dict leegmaken
             freq = {}
+            
+            # voor alle mogelijke codes
             for code in self.potential:
+                # feedback vragen over mogelijk code bij mogelijke guess
                 feedback = geef_feedback(code, guess)
                 
+                # als de feedback al terug is gegeven dan stop je hem in de dict erbij
                 if feedback in freq.keys():
                     freq[feedback].append(code)
+                    
+                # anders maak je een nieuwe index
                 else:
                     freq[feedback] = [code]
             
+            # gemiddelde voor een guess berekenen
             averages[guess] = sum([len(y) / len(list(self.potential)) * len(y) for y in freq.values()])
             freqs[guess] = freq
         
-        print(averages)
+        # de feedback opslaan voor later gebruik
         self.expectedfeedback = freqs[min(averages)]
+        
+        # het element meet de laasgste waarde heb je nodig
         return min(averages)
 
 
