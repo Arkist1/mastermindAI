@@ -133,17 +133,17 @@ class Mastermind():
             if self.method == "human":
                 guess = input("Raad de code: ")
             
-            if self.method == "AI":
+            elif self.method == "AI":
                 print(len(self.potential))
                 randelement = random.randint(0, len(self.potential))
                 guess = "".join(self.potential[randelement - 1])
                 print(guess)
             
-            if self.method == "expected":
+            elif self.method == "expected":
                 guess = ''.join(self.expectedguess())
                 print(guess)
                 
-            if self.method == "blob":
+            elif self.method == "blob":
                 randelement = random.randint(0, len(self.potential))
                 guess = "".join(self.potential[randelement - 1])
             
