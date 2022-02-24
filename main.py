@@ -22,7 +22,7 @@ class Mastermind():
     guesses = []
     
     # Constructor
-    def __init__(self, kleuren=['R', 'O', 'Y', 'G', 'C', 'B'], lengte=4, duplicates=True, max_guesses=10,
+    def __init__(self, kleuren=['R', 'O', 'Y', 'G', 'C', 'B'], lengte=4, duplicates=True, max_guesses=20,
                  method="human"):
         self.kleuren = kleuren
         self.lengte = lengte
@@ -30,6 +30,8 @@ class Mastermind():
         self.max_guesses = max_guesses
         self.method = method
         self.expectedfeedback = {}
+        self.poscolours = {}
+        self.trycolours = kleuren.copy()
         
         # Reset de code, guesses, etc.
         self.reset()
@@ -101,7 +103,7 @@ class Mastermind():
     
     # Pas de overgebleven opties voor de code aan
     def update_mogelijkheden(self, feedback, guess):
-        if self.method == "AI":
+        if self.method == "simple":
             # Loop over alle overgebleven codes
             newcodes = []
             
@@ -112,6 +114,44 @@ class Mastermind():
             # nieuwe codes
             self.potential = newcodes
             return
+        
+        if self.method == "verysimple":
+            # als we een aantal kleuren hebben dat gelijk is aan de lengte van de code hebben we alle kleuren
+            if sum([x for x in self.poscolours.values()]) < self.lengte:
+                self.poscolours[guess[0]] = feedback[0]
+                self.trycolours.remove(guess[0])
+                newpotential = []
+                
+                # als we de kleur goed hebben
+                if feedback[0] > 0:
+                    
+                    # loopen door alle mogelijkheden
+                    for x in self.potential:
+                        
+                        # als de kleur er niet in zit is de guess niet goed
+                        if guess[0] not in x:
+                            continue
+                            
+                        # als de code teveel of teweinig van die kleur bevat
+                        if feedback[0] != countcode(x)[guess[0]]:
+                            continue
+                        else:
+                            # guess toevoegen aan de nieuwe guesses
+                            newpotential.append(x)
+                
+                # als de we de kleur niet hebben halen we alle codes eruit met die kleur
+                else:
+                    for x in self.potential:
+                        if guess[0] in x:
+                            continue
+                        else:
+                            newpotential.append(x)
+            
+                self.potential = newpotential
+            
+            # de guess verwijderen uit de mogelijke guesses
+            if guess in self.potential:
+                self.potential.remove(guess)
         
         # self.potential gelijkstellen aan de waarde die we eerder hadden gegenereerd
         elif self.method == "expected" or self.method == "unexpected":
@@ -138,7 +178,7 @@ class Mastermind():
                 guess = input("Raad de code: ")
             
             # het simpel algoritme
-            elif self.method == "AI":
+            elif self.method == "simple":
                 print(len(self.potential))
                 randelement = random.randint(0, len(self.potential) - 1)
                 guess = "".join(self.potential[randelement])
@@ -158,6 +198,17 @@ class Mastermind():
             elif self.method == "bogo":
                 randelement = random.randint(0, len(self.potential) - 1)
                 guess = "".join(self.potential[randelement])
+            
+            # verysimple algoritme
+            elif self.method == "verysimple":
+                # als we nog niet alle kleuren hebben dan gaan we een kleur raden
+                if sum([x for x in self.poscolours.values()]) < self.lengte:
+                    colour = self.trycolours[0]
+                    guess = colour * self.lengte
+                else:
+                    # random guess als we alle kleuren hebben
+                    guess = ''.join(self.potential[random.randint(0, len(self.potential) - 1)])
+                print(guess)
             
             # Laat de speler opnieuw input invoeren zo lang we geen geldige gok hebben
             while (not self.valide(guess)):
@@ -213,7 +264,7 @@ class Mastermind():
             freqs[guess] = freq
         
         # de feedback opslaan voor later gebruik
-        self.expectedfeedback = freqs[min(averages)] if method == "expect" else freqs[max(averages)]
+        self.expectedfeedback = freqs[  min(averages)] if method == "expect" else freqs[max(averages)]
         
         # het element meet de laasgste waarde heb je nodig
         return min(averages) if method == "expected" else max(averages)
@@ -262,7 +313,16 @@ def geef_feedback(secret, guess):
     return (helemaal_goed, juiste_kleur)
 
 
-Mastermind(method="unexpected")
-
-# Start een nieuwe ronde
-# game.reset()
+def countcode(code):
+    # simpele count functie om de kleuren in codes op te tellen
+    counts = {}
+    for x in code:
+        if x in counts.keys():
+            counts[x] += 1
+        else:
+            counts[x] = 1
+            
+    return counts
+    
+    
+Mastermind(method="simple")
