@@ -23,4 +23,4 @@ A few algorithms for the game mastermind.
     result = sum(averages) / len(averages)
         
     # print result
-    print(f"The simple algorithm gets the answer in an average of {result} tries)
+    print(f"The simple algorithm gets the answer in an average of {result} tries")
