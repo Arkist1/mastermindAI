@@ -94,7 +94,7 @@ class Mastermind():
         
         # Bevat de guess wel de goede kleuren?
         for c in guess:
-            if (not c in self.kleuren):
+            if (c not in self.kleuren):
                 print("De mogelijke kleuren zijn " + str(self.kleuren))
                 return False
         
@@ -148,10 +148,6 @@ class Mastermind():
                             newpotential.append(x)
             
                 self.potential = newpotential
-            
-            # de guess verwijderen uit de mogelijke guesses
-            if guess in self.potential:
-                self.potential.remove(guess)
         
         # self.potential gelijkstellen aan de waarde die we eerder hadden gegenereerd
         elif self.method == "expected" or self.method == "unexpected":
@@ -236,7 +232,7 @@ class Mastermind():
         
         # Zet een spelletje mastermind klaar
     
-    def expectedguess(self, method="expect"):
+    def expectedguess(self):
         # dicts aanmaken voor de data
         averages = {}
         freqs = {}
@@ -264,10 +260,10 @@ class Mastermind():
             freqs[guess] = freq
         
         # de feedback opslaan voor later gebruik
-        self.expectedfeedback = freqs[  min(averages)] if method == "expect" else freqs[max(averages)]
+        self.expectedfeedback = freqs[min(averages)] if self.method == "expected" else freqs[max(averages)]
         
         # het element meet de laasgste waarde heb je nodig
-        return min(averages) if method == "expected" else max(averages)
+        return min(averages) if self.method == "expected" else max(averages)
 
 
 # 2 codes met elkaar vergelijken
@@ -325,4 +321,4 @@ def countcode(code):
     return counts
     
     
-Mastermind(method="simple")
+Mastermind(method="verysimple", max_guesses=9999999, lengte=5)
